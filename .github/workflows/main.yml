@@ -37,16 +37,17 @@ jobs:
         php artisan config:cache
         php artisan route:cache
         php artisan view:cache
-        # php artisan migrate --force # Uncomment if DB is safe to auto-migrate
-        # php artisan test             # Optional
+       
 
     - name: 📂 FTP Deploy to CPanel
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
+        protocol: sftp
+        port: 22
         server: ${{ secrets.SERVER }}
         username: ${{ secrets.USERNAME }}
         password: ${{ secrets.PASSWORD }}
-         protocol: sftp
+        
         server-dir: /public_html/
         
         local-dir: ./
