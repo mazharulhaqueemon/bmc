@@ -42,8 +42,8 @@ jobs:
     - name: 📂 FTP Deploy to CPanel
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
-        protocol: sftp
-        port: 22
+        protocol: ftp
+        port: 21
         server: ${{ secrets.SERVER }}
         username: ${{ secrets.USERNAME }}
         password: ${{ secrets.PASSWORD }}
