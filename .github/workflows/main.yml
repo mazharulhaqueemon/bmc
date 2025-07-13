@@ -46,7 +46,9 @@ jobs:
         server: ${{ secrets.SERVER }}
         username: ${{ secrets.USERNAME }}
         password: ${{ secrets.PASSWORD }}
+         protocol: sftp
         server-dir: /public_html/
+        
         local-dir: ./
         exclude: |
           **/.env
