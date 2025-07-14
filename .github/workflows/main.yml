@@ -47,6 +47,7 @@ jobs:
         username: ${{ secrets.USERNAME }}
         password: ${{ secrets.PASSWORD }}
         server-dir: /public_html/
+        protocol: ftps
         local-dir: ./
         exclude: |
           .env
