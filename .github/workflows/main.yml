@@ -17,43 +17,41 @@ jobs:
     - name: ⚙️ Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '18'    # <-- Changed from 16 to 18
+        node-version: '18'
 
-    - name: 🔨 Build Assets
+    - name: 🔨 Build Frontend Assets
       run: |
-        npm install
+        npm ci
         npm run build
 
     - name: 🛠️ Setup PHP & Composer
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.2'
+        php-version: '8.3'
         tools: composer
         extensions: mbstring, bcmath, intl, pdo, openssl
 
     - name: 📦 Install Laravel Dependencies
       run: |
         composer install --no-dev --optimize-autoloader
+        php artisan config:clear
         php artisan config:cache
         php artisan route:cache
         php artisan view:cache
-       
+        # php artisan migrate --force # Optional: uncomment if DB is safe
 
     - name: 📂 FTP Deploy to CPanel
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
-        protocol: ftp
-        port: 21
-        server: ${{ secrets.SERVER }}
-        username: ${{ secrets.USERNAME }}
-        password: ${{ secrets.PASSWORD }}
-        
+        server: ${{ secrets.FTP_HOST }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
         server-dir: /public_html/
-        
         local-dir: ./
         exclude: |
-          **/.env
-          **/node_modules/**
-          **/vendor/**
-          **/tests/**
-
+          .env
+          node_modules/
+          tests/
+          .git*
+          .github/
+          README.md
