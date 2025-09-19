@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Pusher Phone Request Test</title>
+    <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
+</head>
+
+<body>
+    <h1>Pusher Phone Request Test</h1>
+
+    <p>
+        Receiver User ID: <input type="number" id="receiverId" value="5" />
+        Sender User ID: <input type="number" id="senderId" value="4" />
+        <button onclick="simulateSendRequest()">Send Request</button>
+    </p>
+
+    <p>
+        Receiver Channel Logs:
+    <pre id="receiverLogs"></pre>
+    </p>
+    <p>
+        Sender Channel Logs:
+    <pre id="senderLogs"></pre>
+    </p>
+
+    <script>
+        Pusher.logToConsole = true;
+
+        // Get input values
+        const receiverId = document.getElementById('receiverId').value;
+        const senderId = document.getElementById('senderId').value;
+
+        // Subscribe receiver channel
+        var receiverChannel = new Pusher('8c295d5db3ac33d18d28', {
+            cluster: 'mt1',
+            forceTLS: true
+        }).subscribe('user.' + receiverId);
+
+        receiverChannel.bind('phone-request.sent', function (data) {
+            console.log('Receiver got a new request:', data);
+            document.getElementById('receiverLogs').innerText += JSON.stringify(data) + "\n";
+            alert("Receiver got a new phone request from: " + data.phoneRequest.requester.name);
+        });
+
+        receiverChannel.bind('phone-request.responded', function (data) {
+            console.log('Receiver got response:', data);
+            document.getElementById('receiverLogs').innerText += JSON.stringify(data) + "\n";
+        });
+
+        // Subscribe sender channel
+        var senderChannel = new Pusher('8c295d5db3ac33d18d28', {
+            cluster: 'mt1',
+            forceTLS: true
+        }).subscribe('user.' + senderId);
+
+        senderChannel.bind('phone-request.sent', function (data) {
+            console.log('Sender got sent notification:', data);
+            document.getElementById('senderLogs').innerText += JSON.stringify(data) + "\n";
+        });
+
+        senderChannel.bind('phone-request.responded', function (data) {
+            console.log('Sender got response:', data);
+            document.getElementById('senderLogs').innerText += JSON.stringify(data) + "\n";
+            alert("Your phone request has been " + data.phoneRequest.status);
+        });
+
+        // Simulate sending request from Postman / server
+        function simulateSendRequest() {
+            alert("Use your API endpoint (Postman) to send request from senderId: " + senderId + " to receiverId: " + receiverId);
+        }
+    </script>
+</body>
+
+</html>

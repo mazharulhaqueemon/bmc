@@ -3,22 +3,25 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Filesystem\Filesystem;
+
+
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
+    
+    // Register any application services.
     public function register(): void
     {
-        //
+        if (! $this->app->bound('files')) {
+            $this->app->singleton('files', function () {
+                return new Filesystem();
+            });
+        }
     }
 
-    /**
-     * Bootstrap any application services.
-     */
+    // Bootstrap any application services.
     public function boot(): void
     {
-        //
     }
 }

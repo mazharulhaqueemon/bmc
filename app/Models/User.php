@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -10,8 +9,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory,HasApiTokens, Notifiable;
+    use HasFactory, HasApiTokens, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -25,8 +23,12 @@ class User extends Authenticatable
         'account_created_by',
         'otp',
         'otp_expires_at',
-
+        'is_admin',
+        'plan_id',
+        'plan_activated_at',
+        'phone_number',
     ];
+
 
     /**
      * The attributes that should be hidden for serialization.
@@ -39,15 +41,57 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
      * @return array<string, string>
      */
     protected function casts(): array
     {
         return [
-
             'password' => 'hashed',
+            'plan_activated_at' => 'datetime', 
         ];
+    }
+
+    // Relationship: User belongs to a Plan
+    public function plan(){
+        return $this->belongsTo(Plan::class);
+    }
+
+    
+    // Relationship: Phone requests sent by this user
+    public function sentPhoneRequests(){
+        return $this->hasMany(PhoneRequest::class, 'requester_id');
+    }
+    
+    // Relationship: Phone requests received by this user
+    public function receivedPhoneRequests(){
+        return $this->hasMany(PhoneRequest::class, 'receiver_id');
+    }
+
+    // Relationship: User has many Profile Pictures
+    public function profilePictures(){
+        return $this->hasMany(ProfilePicture::class);
+    }
+
+    // Relationship: User has one primary Profile Picture
+    public function primaryProfilePicture(){
+        return $this->hasOne(ProfilePicture::class)->where('is_primary', true);
+    }
+
+    // Relationship: User has many Payments
+    public function payments(){
+        return $this->hasMany(Payment::class);
+    }
+
+
+    
+    // Automatically assign Free Plan on creation if plan_id is empty
+    protected static function booted(){
+        static::creating(function ($user) {
+            if (empty($user->plan_id)) {
+                $user->plan_id = 1; // Free Plan has ID = 1
+            }
+        });
     }
 }
