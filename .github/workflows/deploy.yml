@@ -3,20 +3,52 @@ name: Deploy Laravel to Server
 on:
   push:
     branches:
-      - chat # change to your branch name if needed (main, master, etc.)
+      - chat  # Change this to your branch name
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout code
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up SSH
+      # 2. Start SSH agent with private key
+      - name: Start SSH agent
         uses: webfactory/ssh-agent@v0.7.0
         with:
-          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
 
-      - name: Run deployment script on server
-        run: ssh deploy@193.168.195.68 'bash /home/deploy/deploy.sh'
+      # 3. Add server to known_hosts (fix host key verification)
+      - name: Add server to known_hosts
+        run: ssh-keyscan -H 193.168.195.68 >> ~/.ssh/known_hosts
+
+      # 4. Pull latest code on server
+      - name: Pull latest code and install dependencies
+        run: |
+          ssh deploy@193.168.195.68 << 'EOF'
+          set -e
+
+          echo ">>> Pulling latest code"
+          cd /var/www/bmc
+          git fetch --all
+          git reset --hard origin/chat
+
+          echo ">>> Installing Composer dependencies"
+          composer install --no-interaction --prefer-dist --optimize-autoloader
+
+          echo ">>> Running migrations"
+          php artisan migrate --force
+
+          echo ">>> Clearing caches"
+          php artisan config:clear
+          php artisan cache:clear
+          php artisan route:clear
+          php artisan view:clear
+
+          echo ">>> Restarting PHP-FPM"
+          sudo systemctl restart php8.2-fpm
+
+          echo ">>> Deployment finished!"
+          EOF
