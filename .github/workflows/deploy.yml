@@ -3,7 +3,7 @@ name: Deploy Laravel to Server
 on:
   push:
     branches:
-      - chat  # Change this to your branch name
+      - chat # Change this to your branch name
 
 jobs:
   deploy:
@@ -18,7 +18,7 @@ jobs:
       - name: Start SSH agent
         uses: webfactory/ssh-agent@v0.7.0
         with:
-          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
 
       # 3. Add server to known_hosts (fix host key verification)
       - name: Add server to known_hosts
