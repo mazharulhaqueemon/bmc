@@ -1,0 +1,22 @@
+name: Deploy Laravel to Server
+
+on:
+  push:
+    branches:
+      - chat # change to your branch name
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+      - name: Run deployment script on server
+        run: ssh deploy@193.168.195.68 'bash /home/deploy/deploy.sh'
