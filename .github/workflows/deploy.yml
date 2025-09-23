@@ -3,7 +3,7 @@ name: Deploy Laravel to Server
 on:
   push:
     branches:
-      - chat # Change this to your branch name
+      - chat # Change this to your branch name name
 
 jobs:
   deploy:
