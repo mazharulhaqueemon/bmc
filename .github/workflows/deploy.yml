@@ -3,7 +3,7 @@ name: Deploy Laravel to Server
 on:
   push:
     branches:
-      - chat # Change this to your branch name if neeed.
+      - chat # Change if needed (eg. main, master)
 
 jobs:
   deploy:
@@ -24,8 +24,8 @@ jobs:
       - name: Add server to known_hosts
         run: ssh-keyscan -H 193.168.195.68 >> ~/.ssh/known_hosts
 
-      # 4. Pull latest code on server
-      - name: Pull latest code and install dependencies
+      # 4. Deploy on server
+      - name: SSH and deploy
         run: |
           ssh deploy@193.168.195.68 << 'EOF'
           set -e
@@ -47,8 +47,13 @@ jobs:
           php artisan route:clear
           php artisan view:clear
 
-          echo ">>> Restarting PHP-FPM"
+          echo ">>> Fixing permissions"
+          sudo chown -R www-data:www-data /var/www/bmc/storage /var/www/bmc/bootstrap/cache
+          sudo chmod -R 775 /var/www/bmc/storage /var/www/bmc/bootstrap/cache
+
+          echo ">>> Restarting services"
           sudo systemctl restart php8.2-fpm
+          sudo systemctl restart nginx
 
           echo ">>> Deployment finished!"
           EOF
