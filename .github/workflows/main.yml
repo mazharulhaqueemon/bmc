@@ -1,4 +1,4 @@
-name: 🚀 Publish Laravel App to CPanel
+name: 🚀 Publish Laravel App to Hostinger VPS (SFTP)
 
 on:
   push:
@@ -6,53 +6,58 @@ on:
       - Sabbir
 
 jobs:
-  FTP-Deploy-Action:
-    name: 🎉 Laravel FTP Deploy
+  SFTP-Deploy-Action:
+    name: 🎉 Laravel SFTP Deploy
     runs-on: ubuntu-latest
 
     steps:
-    - name: 📥 Checkout Code
-      uses: actions/checkout@v4
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
 
-    - name: ⚙️ Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
 
-    - name: 🔨 Build Frontend Assets
-      run: |
-        npm install
-        npm run build
+      - name: 🔨 Build Frontend Assets
+        run: |
+          npm install
+          npm run build
 
-    - name: 🛠️ Setup PHP & Composer
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.3'
-        tools: composer
-        extensions: mbstring, bcmath, intl, pdo, openssl
+      - name: 🛠️ Setup PHP & Composer
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          tools: composer
+          extensions: mbstring, bcmath, intl, pdo, openssl
 
-    - name: 📦 Install Laravel Dependencies
-      run: |
-        composer install --no-dev --optimize-autoloader
-        php artisan config:clear
-        php artisan config:cache
-        php artisan route:cache
-        php artisan view:cache
-        # php artisan migrate --force # Optional: uncomment if DB is safe
+      - name: 📦 Install Laravel Dependencies
+        run: |
+          composer install --no-dev --optimize-autoloader
+          php artisan config:clear
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+          # php artisan migrate --force # Optional: uncomment if DB is safe
 
-    - name: 📂 FTP Deploy to CPanel
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-      with:
-        server: ${{ secrets.SERVER }}
-        username: ${{ secrets.USERNAME }}
-        password: ${{ secrets.PASSWORD }}
-        server-dir: /public_html/
-        protocol: ftps
-        local-dir: ./
-        exclude: |
-          .env
-          node_modules/
-          tests/
-          .git*
-          .github/
-          README.md
+      - name: 📂 SFTP Deploy to VPS (Port 22)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.SERVER }}
+          # Use your VPS user (e.g., 'root' or 'ubuntu')
+          username: ${{ secrets.USERNAME }}
+          # CRUCIAL: Using SSH key is more secure and avoids ECONNREFUSED issues on VPS
+          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          protocol: sftp # Switched from ftps to the more reliable SFTP
+          port: 22 # Standard port for SFTP
+          # NOTE: Verify if your Hostinger VPS web root is /public_html/.
+          # For many standard VPS setups, this path is /var/www/html/ or similar.
+          server-dir: /public_html/
+          local-dir: ./
+          exclude: |
+            .env
+            node_modules/
+            tests/
+            .git*
+            .github/
+            README.md
