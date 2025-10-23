@@ -6,16 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Location extends Model
 {
-    protected $fileable =[
-        'proifle_id',
+     protected $fillable = [
+        'profile_id',
         'present_address',
         'permanent_address',
         'city',
         'address',
         'nationality',
         'residence_status',
-        'living-status',
-
+        'living_status',
     ];
 
     public function profile()

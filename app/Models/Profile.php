@@ -7,22 +7,36 @@ use Illuminate\Database\Eloquent\Model;
 
 class Profile extends Model
 {
+     protected $fillable = [
+        'user_id',
+        'gender',
+        'dob',
+        'marital_status',
+        'height_feet',
+        'weight_kg',
+        'blood_group',
+        'mother_tongue',
+        'religion',
+        'caste',
+        'sub_caste',
+        'bio',
+    ];
     public function user()
 {
     return $this->belongsTo(User::class);
 }
 
-public function educations()
+public function education()
 {
     return $this->hasMany(Education::class);
 }
 
-public function careers()
+public function career()
 {
     return $this->hasMany(Career::class);
 }
 
-public function family()
+public function familyDetail()
 {
     return $this->hasOne(FamilyDetail::class);
 }
