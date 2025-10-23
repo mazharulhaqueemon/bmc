@@ -31,7 +31,7 @@ class CareerController extends Controller
 
         return Career::create($validated);
     }
-
+//  hello
     /**
      * Display the specified resource.
      */
@@ -67,4 +67,4 @@ class CareerController extends Controller
     {
         //
     }
-}
+}//test again
