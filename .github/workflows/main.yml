@@ -3,7 +3,7 @@ name: 🚀 Publish Laravel App to CPanel
 on:
   push:
     branches:
-      - main
+      - Sabbir
 
 jobs:
   FTP-Deploy-Action:
