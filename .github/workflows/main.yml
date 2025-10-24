@@ -1,68 +1,4 @@
-# name: 🚀 Publish Laravel App to Hostinger VPS (SFTP)
-
-# on:
-#   push:
-#     branches:
-#       - Sabbir
-
-# jobs:
-#   SFTP-Deploy-Action:
-#     name: 🎉 Laravel SFTP Deploy
-#     runs-on: ubuntu-latest
-
-#     steps:
-#       - name: 📥 Checkout Code
-#         uses: actions/checkout@v4
-
-#       - name: ⚙️ Setup Node.js
-#         uses: actions/setup-node@v3
-#         with:
-#           node-version: "18"
-
-#       - name: 🔨 Build Frontend Assets
-#         run: |
-#           npm install
-#           npm run build
-
-#       - name: 🛠️ Setup PHP & Composer
-#         uses: shivammathur/setup-php@v2
-#         with:
-#           php-version: "8.3"
-#           tools: composer
-#           extensions: mbstring, bcmath, intl, pdo, openssl
-
-#       - name: 📦 Install Laravel Dependencies
-#         run: |
-#           composer install --no-dev --optimize-autoloader
-#           php artisan config:clear
-#           php artisan config:cache
-#           php artisan route:cache
-#           php artisan view:cache
-#           # php artisan migrate --force # Optional: uncomment if DB is safe
-
-#       - name: 📂 SFTP Deploy to VPS (Port 22)
-#         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-#         with:
-#           server: ${{ secrets.SERVER }}
-#           # Use your VPS user (e.g., 'root' or 'ubuntu')
-#           username: ${{ secrets.USERNAME }}
-#           # CRUCIAL: Using SSH key is more secure and avoids ECONNREFUSED issues on VPS
-#           ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
-#           protocol: sftp # Switched from ftps to the more reliable SFTP
-#           port: 22 # Standard port for SFTP
-#           # NOTE: Verify if your Hostinger VPS web root is /public_html/.
-#           # For many standard VPS setups, this path is /var/www/html/ or similar.
-#           server-dir: /public_html/
-#           local-dir: ./
-#           exclude: |
-#             .env
-#             node_modules/
-#             tests/
-#             .git*
-#             .github/
-#             README.md
-
-name: 🚀 Publish Laravel App to Hostinger VPS (SFTP)
+name: 🚀 Deploy Laravel to Hostinger VPS
 
 on:
   push:
@@ -71,53 +7,61 @@ on:
 
 jobs:
   deploy:
-    name: 🎉 Laravel SFTP Deploy
     runs-on: ubuntu-latest
 
     steps:
       - name: 📥 Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: ⚙️ Setup Node.js
-        uses: actions/setup-node@v3
+      - name: 🔑 Start SSH Agent
+        uses: webfactory/ssh-agent@v0.7.0
         with:
-          node-version: "18"
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
 
-      - name: 🔨 Build Frontend Assets
+      - name: 🧱 Add Server to known_hosts
+        run: ssh-keyscan -H 193.168.195.68 >> ~/.ssh/known_hosts
+
+      - name: 💾 Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: 🚀 Deploy and Update Laravel App
         run: |
-          npm install
-          npm run build
+          ssh deploy@193.168.195.68 << 'EOF'
+          set -e
+          cd /var/www/bmc
 
-      - name: 🛠️ Setup PHP & Composer
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.3"
-          tools: composer
-          extensions: mbstring, bcmath, intl, pdo, openssl
+          echo ">>> Pulling latest code"
+          git fetch --all
+          git reset --hard origin/chat
 
-      - name: 📦 Install Laravel Dependencies
-        run: |
-          composer install --no-dev --optimize-autoloader
-          php artisan config:clear
-          php artisan config:cache
-          php artisan route:cache
-          php artisan view:cache
+          echo ">>> Ensuring .env exists"
+          cp /var/www/bmc/.env .env || echo ".env already in place"
 
-      - name: 🚀 Deploy via SFTP
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SERVER }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 22
-          source: "./"
-          target: "/var/www/html/"
-          rm: false
-          overwrite: true
-          exclude: |
-            .env
-            node_modules/
-            tests/
-            .git*
-            .github/
-            README.md
+          echo ">>> Installing Composer dependencies"
+          composer install --no-interaction --prefer-dist --optimize-autoloader
+
+          echo ">>> Running migrations"
+          php artisan migrate --force
+
+          echo ">>> Clearing caches"
+          php artisan optimize:clear
+          php artisan optimize
+
+          echo ">>> Fixing permissions"
+          sudo chown -R www-data:www-data storage bootstrap/cache
+          sudo chmod -R 775 storage bootstrap/cache
+
+          echo ">>> Restarting services"
+          sudo systemctl restart php8.2-fpm
+          sudo systemctl restart nginx
+
+          echo ">>> Checking app health"
+          curl -I https://yourdomain.com || echo "Health check failed"
+
+          echo ">>> ✅ Deployment complete!"
+          EOF
