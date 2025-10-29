@@ -8,6 +8,8 @@ use Filament\Facades\Filament;
 use App\Models\Payment;
 use App\Observers\PaymentObserver;
 
+
+
 class AppServiceProvider extends ServiceProvider
 {
     
@@ -24,7 +26,7 @@ class AppServiceProvider extends ServiceProvider
     // Bootstrap any application services.
     public function boot(): void
     {
-        // Register the Payment observer
+                // Register the Payment observer
         Payment::observe(PaymentObserver::class);
 
         // Filament admin panel access restriction
@@ -34,5 +36,6 @@ class AppServiceProvider extends ServiceProvider
                 abort(403); 
             }
         });
+
     }
 }

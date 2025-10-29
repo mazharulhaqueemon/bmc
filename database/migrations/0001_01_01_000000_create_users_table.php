@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
+            $table->string('phone')->nullable();
             $table->enum('account_created_by', ['self', 'father', 'mother', 'sibling', 'relative', 'agent'])->default('self');
             $table->string('password');
             $table->string('otp')->nullable();

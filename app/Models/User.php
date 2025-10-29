@@ -6,6 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\Plan;
+use App\Models\PhoneRequest;
+use App\Models\ProfilePicture;
+use App\Models\Payment;
+use App\Models\Profile;
+
 
 class User extends Authenticatable
 {
@@ -49,7 +55,7 @@ class User extends Authenticatable
     {
         return [
             'password' => 'hashed',
-            'plan_activated_at' => 'datetime', 
+            'plan_activated_at' => 'datetime',
         ];
     }
 
@@ -58,12 +64,12 @@ class User extends Authenticatable
         return $this->belongsTo(Plan::class);
     }
 
-    
+
     // Relationship: Phone requests sent by this user
     public function sentPhoneRequests(){
         return $this->hasMany(PhoneRequest::class, 'requester_id');
     }
-    
+
     // Relationship: Phone requests received by this user
     public function receivedPhoneRequests(){
         return $this->hasMany(PhoneRequest::class, 'receiver_id');
@@ -84,8 +90,12 @@ class User extends Authenticatable
         return $this->hasMany(Payment::class);
     }
 
+    public function profile(){
+        return $this->hasOne(Profile::class);
+    }
 
-    
+
+
     // Automatically assign Free Plan on creation if plan_id is empty
     protected static function booted(){
         static::creating(function ($user) {
