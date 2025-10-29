@@ -28,6 +28,6 @@ class AuthServiceProvider extends ServiceProvider
          * 
          * Only users with `is_admin = true/1` will get access.
          */
-        Gate::define('access-filament', fn ($user) => (bool) $user->is_admin);
+        // Gate::define('access-filament', fn ($user) => (bool) $user->is_admin);
     }
 }

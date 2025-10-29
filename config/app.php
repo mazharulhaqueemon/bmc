@@ -91,7 +91,7 @@ return [
          * Package Service Providers
          */
         Laravel\Sanctum\SanctumServiceProvider::class,
-        Kreait\Laravel\Firebase\ServiceProvider::class, // Firebase provider
+        // Kreait\Laravel\Firebase\ServiceProvider::class, // Firebase provider
 
         /*
          * Application Service Providers
@@ -135,7 +135,7 @@ return [
         'URL' => Illuminate\Support\Facades\URL::class,
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
-        'Firebase' => Kreait\Laravel\Firebase\Facades\Firebase::class, // Firebase alias
+        // 'Firebase' => Kreait\Laravel\Firebase\Facades\Firebase::class, // Firebase alias
     ],
 
 ];
