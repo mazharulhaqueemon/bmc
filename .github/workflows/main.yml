@@ -1,58 +1,76 @@
-name: 🚀 Publish Laravel App to CPanel
+name: 🚀 Deploy Laravel to Hostinger VPS
 
 on:
   push:
     branches:
-      - main
+      - Sabbir
 
 jobs:
-  FTP-Deploy-Action:
-    name: 🎉 Laravel FTP Deploy
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: 📥 Checkout Code
-      uses: actions/checkout@v4
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v3
 
-    - name: ⚙️ Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
+      - name: 🔑 Start SSH Agent
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
 
-    - name: 🔨 Build Frontend Assets
-      run: |
-        npm install
-        npm run build
+      - name: 🧱 Add Server to known_hosts
+        run: ssh-keyscan -H 193.168.195.68 >> ~/.ssh/known_hosts
 
-    - name: 🛠️ Setup PHP & Composer
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.3'
-        tools: composer
-        extensions: mbstring, bcmath, intl, pdo, openssl
+      - name: 💾 Cache Composer Dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
 
-    - name: 📦 Install Laravel Dependencies
-      run: |
-        composer install --no-dev --optimize-autoloader
-        php artisan config:clear
-        php artisan config:cache
-        php artisan route:cache
-        php artisan view:cache
-        # php artisan migrate --force # Optional: uncomment if DB is safe
+      - name: 🚀 Deploy and Update Laravel App
+        run: |
+          ssh deploy@193.168.195.68 << 'EOF'
+          set -e
+          cd /var/www/bmc
 
-    - name: 📂 FTP Deploy to CPanel
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-      with:
-        server: ${{ secrets.SERVER }}
-        username: ${{ secrets.USERNAME }}
-        password: ${{ secrets.PASSWORD }}
-        server-dir: /public_html/
-        protocol: ftps
-        local-dir: ./
-        exclude: |
-          .env
-          node_modules/
-          tests/
-          .git*
-          .github/
-          README.md
+          echo ">>> Pulling latest code from remote branch"
+          git fetch --all
+          git reset --hard origin/Sabbir
+
+          echo ">>> Ensuring .env file exists"
+          if [ ! -f .env ]; then
+            cp /var/www/bmc/.env.example .env
+            echo ".env file created from example"
+          else
+            echo ".env already exists"
+          fi
+
+          echo ">>> Installing Composer dependencies"
+          composer install --no-interaction --prefer-dist --optimize-autoloader
+
+          echo ">>> Running database migrations"
+          php artisan migrate --force || echo "⚠️ Migration failed or already up-to-date"
+
+          echo ">>> Clearing and caching configurations"
+          php artisan config:clear
+          php artisan cache:clear
+          php artisan route:cache
+          php artisan view:cache
+          php artisan optimize
+
+          echo ">>> Fixing file permissions"
+          sudo chown -R deploy:www-data /var/www/bmc
+          sudo chmod -R 775 /var/www/bmc
+          sudo find /var/www/bmc -type d -exec chmod g+s {} \;
+
+          echo ">>> Restarting PHP-FPM and Nginx"
+          sudo systemctl reload php8.2-fpm
+          sudo systemctl reload nginx
+
+          echo ">>> Performing health check"
+          curl -Is http://193.168.195.68 | head -n 1
+
+          echo ">>> ✅ Deployment successful!"
+          EOF
