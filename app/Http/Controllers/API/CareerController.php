@@ -31,7 +31,29 @@ class CareerController extends Controller
 
         return Career::create($validated);
     }
-//  hello
+
+
+    /**
+ * Get career by profile_id
+ */
+    public function showByProfile($profile_id)
+    {
+        $career = Career::where('profile_id', $profile_id)->first();
+
+        if (!$career) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Career not found for this profile',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $career,
+        ]);
+    }
+
+
     /**
      * Display the specified resource.
      */

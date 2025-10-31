@@ -31,6 +31,22 @@ class EducationController extends Controller
          return Education::create($validated);
     }
 
+    public function showByProfile($profile_id)
+    {
+        $education = Education::where('profile_id', $profile_id)->first();
+        if (!$education) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No education record found'
+            ], 404);
+        }
+        return response()->json([
+            'success' => true,
+            'data' => $education
+        ]);
+    }
+
+
     /**
      * Display the specified resource.
      */

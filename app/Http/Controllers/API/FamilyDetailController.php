@@ -32,12 +32,47 @@ class FamilyDetailController extends Controller
 
         return FamilyDetail::create($validated);
     }
+    /**
+ * Get family details by profile_id
+ */
+    public function showByProfile($profile_id)
+    {
+        $familyDetail = FamilyDetail::where('profile_id', $profile_id)->first();
 
-    // Show a single family detail
+        if (!$familyDetail) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Family details not found for this profile',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $familyDetail,
+        ]);
+    }
+
+
+    /**
+ * Display the specified resource.
+ */
     public function show($id)
     {
-        return FamilyDetail::findOrFail($id);
+        $familyDetail = FamilyDetail::find($id);
+
+        if (!$familyDetail) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Family detail not found',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $familyDetail,
+        ]);
     }
+
 
     // Update a family detail
     public function update(Request $request, $id)

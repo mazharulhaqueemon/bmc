@@ -33,6 +33,12 @@ class PartnerPreferenceController extends Controller
 
         return PartnerPreference::create($validated);
     }
+    // Show preference by profile_id
+public function showByProfile($profileId)
+{
+    return PartnerPreference::where('profile_id', $profileId)->firstOrFail();
+}
+
 
     // Show a single partner preference
     public function show($id)

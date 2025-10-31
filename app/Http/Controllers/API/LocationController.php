@@ -31,6 +31,17 @@ class LocationController extends Controller
         return Location::create($validated);
     }
 
+     public function showByProfile($profileId)
+    {
+        $location = Location::where('profile_id', $profileId)->first();
+
+        if (!$location) {
+            return response()->json(['message' => 'Location not found'], 404);
+        }
+
+        return $location;
+    }
+
     // Show a single location
     public function show($id)
     {

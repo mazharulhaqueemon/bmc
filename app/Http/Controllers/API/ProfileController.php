@@ -26,6 +26,28 @@ class ProfileController extends Controller
         return response()->json($profiles);
     }
 
+    // Show single profile with User_ID
+    public function showByUser($user_id)
+    {
+        $profile = Profile::where('user_id', $user_id)->first();
+
+        if (!$profile) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Profile not found',
+                'data' => null
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile retrieved successfully',
+            'data' => $profile
+        ]);
+    }
+
+
+
     // Show single profile
     public function show($id)
     {

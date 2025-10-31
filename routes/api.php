@@ -20,6 +20,8 @@ use App\Http\Controllers\API\PartnerPreferenceController;
 use App\Http\Controllers\API\ProfilePictureController;
 use App\Http\Controllers\API\PaymentController;
 
+use App\Http\Controllers\API\ChatListController;
+use App\Http\Controllers\API\UserController;
 
 Route::post('signup', [AuthController::class, 'signup']);
 Route::post('login', [AuthController::class, 'login']);
@@ -37,9 +39,13 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 
+Route::get('/plans/public', [PlanController::class, 'index']); 
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/admin/plan', [PlanController::class, 'create']); // create plan
     Route::get('/admin/plans', [PlanController::class, 'index']);   // list plans
+
+
 });
 
 
@@ -63,6 +69,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/payment/user', [PaymentController::class, 'userPayments']);
     Route::get('profiles/search', [ProfileController::class, 'advancedSearch']);
 
+    Route::get('profiles/user/{user_id}', [ProfileController::class, 'showByUser']);
+    Route::get('educations/profile/{profile_id}', [EducationController::class, 'showByProfile']);
+    Route::get('careers/profile/{profile_id}', [CareerController::class, 'showByProfile']);
+    Route::get('family-details/profile/{profile_id}', [FamilyDetailController::class, 'showByProfile']);
+    Route::get('locations/profile/{profile_id}', [LocationController::class, 'showByProfile']);
+    Route::get('lifestyles/profile/{profileId}', [LifestyleController::class, 'showByProfile']);
+    Route::get('partner-preferences/profile/{profileId}', [PartnerPreferenceController::class, 'showByProfile']);
+
     Route::apiResource('profiles', ProfileController::class);
     Route::apiResource('educations', EducationController::class)->except(['destroy']);
     Route::apiResource('careers', CareerController::class)->except(['destroy']);
@@ -70,4 +84,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('locations', LocationController::class)->except(['destroy']);
     Route::apiResource('lifestyles', LifestyleController::class)->except(['destroy']);
     Route::apiResource('partner-preferences', PartnerPreferenceController::class)->except(['destroy']);
+});
+
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/chat/list', [ChatListController::class, 'index']);
+    Route::post('/chat/list', [ChatListController::class, 'store']);
+});
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user/me', [UserController::class, 'me']);
 });

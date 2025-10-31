@@ -28,6 +28,13 @@ class LifestyleController extends Controller
         return Lifestyle::create($validated);
     }
 
+    // Show lifestyle by profile_id
+    public function showByProfile($profileId)
+    {
+        return Lifestyle::where('profile_id', $profileId)->firstOrFail();
+    }
+
+
     // Show a single lifestyle record
     public function show($id)
     {
