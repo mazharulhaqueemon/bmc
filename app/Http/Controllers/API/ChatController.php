@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\ChatLog;
+use App\Models\ChatList;
+use App\Events\ChatMessageSent;
 
 class ChatController extends Controller
 {
@@ -66,10 +68,27 @@ class ChatController extends Controller
             'status' => 'sent',
         ]);
 
+        // Update chat lists
+        ChatList::updateOrCreate(
+            ['user_id' => $sender->id, 'chat_id' => $chatId, 'other_user_id' => $receiverId],
+            ['last_message' => $messageText, 'last_message_at' => now(), 'unread_count' => 0]
+        );
+
+        ChatList::updateOrCreate(
+            ['user_id' => $receiverId, 'chat_id' => $chatId, 'other_user_id' => $sender->id],
+            [
+                'last_message' => $messageText,
+                'last_message_at' => now(),
+            ]
+        )->increment('unread_count');
+
+        // Broadcast the message to the private chat channel
+        event(new ChatMessageSent($chatId, $chat));
+
         return response()->json([
             'success' => true,
             'chat_id' => $chatId,
-            'message' => 'Message sent successfully (frontend Firestore sync separately)',
+            'message' => 'Message sent successfully',
             'data' => $chat
         ]);
     }
